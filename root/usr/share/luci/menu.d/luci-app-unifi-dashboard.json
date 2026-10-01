@@ -1,0 +1,24 @@
+{
+	"admin/unifi": {
+		"title": "UniFi Dashboard",
+		"order": 5,
+		"action": {
+			"type": "firstchild",
+			"preferred": "overview",
+			"recurse": true
+		},
+		"depends": {
+			"acl": [ "luci-app-unifi-dashboard" ]
+		}
+	},
+	"admin/unifi/overview": {
+		"title": "Overview",
+		"order": 10,
+		"action": { "type": "view", "path": "unifi/overview" }
+	},
+	"admin/unifi/settings": {
+		"title": "Settings",
+		"order": 20,
+		"action": { "type": "view", "path": "unifi/settings" }
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"luci-app-unifi-dashboard": {
+		"description": "Read-only access for the UniFi dashboard",
+		"read": {
+			"uci": [ "network", "wireless", "firewall", "dhcp" ],
+			"ubus": {
+				"network.interface": [ "dump" ],
+				"network.device": [ "status" ],
+				"system": [ "board", "info" ],
+				"luci-rpc": [ "getDHCPLeases" ]
+			}
+		}
+	}
+}
