@@ -77,13 +77,12 @@ return view.extend({
 		this.zones = uci.sections('firewall', 'zone');
 		this.routes = uci.sections('network', 'route').concat(uci.sections('network', 'route6'));
 		this.dhcp = uci.sections('dhcp', 'dhcp');
-		this.category = 'overview';
+		var path = L.env && L.env.dispatchpath || [];
+		var initialCategory = categories.some(function(category) { return category.id === path[3]; }) ? path[3] : 'overview';
+		this.category = initialCategory;
 		this.refs = {};
-		var self = this;
 		var categoryButtons = categories.map(function(category) {
-			var button = E('button', { 'type': 'button', 'class': 'uf-settings-nav__item', 'onclick': function() { self.showCategory(category.id); } }, [ E('span', { 'class': 'uf-settings-nav__icon', 'aria-hidden': 'true' }, category.icon), category.label ]);
-			self.refs[category.id + 'Button'] = button;
-			return button;
+			return E('a', { 'class': 'uf-settings-nav__item' + (category.id === initialCategory ? ' is-active' : ''), 'href': L.url('admin', 'unifi', 'settings', category.id) }, [ E('span', { 'class': 'uf-settings-nav__icon', 'aria-hidden': 'true' }, category.icon), category.label ]);
 		});
 		this.refs.page = E('div', { 'class': 'uf-settings-page' });
 		var root = E('div', { 'class': 'uf-app uf-app--settings' }, [
@@ -105,23 +104,20 @@ return view.extend({
 				])
 			])
 		]);
-		this.showCategory('overview');
+		this.showCategory(initialCategory);
 		return E('div', {}, [ E('link', { 'rel': 'stylesheet', 'href': L.resource('unifi/dashboard.css') }), root ]);
 	},
 
 	showCategory: function(id) {
 		this.category = id;
-		categories.forEach(function(category) {
-			this.refs[category.id + 'Button'].classList.toggle('is-active', category.id === id);
-		}, this);
 		var selected = categories.find(function(category) { return category.id === id; }) || categories[0];
 		var content = this.categoryContent(id);
 		var nativeUrl = this.nativeUrl(id);
+		var heading = [ E('div', {}, [ E('div', { 'class': 'uf-eyebrow' }, 'SETTINGS / ' + selected.label.toUpperCase()), E('h1', {}, selected.label), E('p', {}, selected.description) ]) ];
+		if (nativeUrl)
+			heading.push(E('a', { 'class': 'uf-settings-edit', 'href': nativeUrl }, 'LuCI で編集 ↗'));
 		this.refs.page.replaceChildren(
-			E('div', { 'class': 'uf-settings-heading' }, [
-				E('div', {}, [ E('div', { 'class': 'uf-eyebrow' }, 'SETTINGS / ' + selected.label.toUpperCase()), E('h1', {}, selected.label), E('p', {}, selected.description) ]),
-				nativeUrl ? E('a', { 'class': 'uf-settings-edit', 'href': nativeUrl }, 'LuCI で編集 ↗') : null
-			]),
+			E('div', { 'class': 'uf-settings-heading' }, heading),
 			E('div', { 'class': 'uf-settings-content' }, content)
 		);
 	},
@@ -163,7 +159,7 @@ return view.extend({
 		return [
 			E('div', { 'class': 'uf-settings-intro' }, [ E('span', { 'class': 'uf-settings-intro__icon' }, '⚙'), E('div', {}, [ E('h2', {}, 'ネットワーク設定'), E('p', {}, 'UniFiの設定構成に沿って、OpenWrtの現在値を表示します。') ]) ]),
 			E('div', { 'class': 'uf-settings-tiles' }, categories.slice(1).map(function(category) {
-				return E('button', { 'class': 'uf-settings-tile', 'type': 'button', 'onclick': function() { self.showCategory(category.id); } }, [
+				return E('a', { 'class': 'uf-settings-tile', 'href': L.url('admin', 'unifi', 'settings', category.id) }, [
 					E('span', { 'class': 'uf-settings-tile__icon' }, category.icon),
 					E('span', { 'class': 'uf-settings-tile__text' }, [ E('strong', {}, category.label), E('small', {}, category.description) ]),
 					E('span', { 'class': 'uf-settings-tile__count' }, String(counts[category.id])),

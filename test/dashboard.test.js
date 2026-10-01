@@ -61,7 +61,7 @@ test('LuCI view renders the dashboard with RPC data', async () => {
 		'luci-rpc.getDHCPLeases': { dhcp_leases: [ { hostname: 'laptop', macaddr: 'aa:bb:cc:dd:ee:ff', ipaddr: '192.168.1.12', expires: 120 } ] }
 	};
 	const rpc = { declare: ({ object, method }) => () => Promise.resolve(responses[object + '.' + method]) };
-	const L = { resolveDefault: (promise, fallback) => promise.catch(() => fallback), url: (...parts) => '/' + parts.join('/'), resource: name => '/luci-static/resources/' + name };
+	const L = { env: { dispatchpath: [ 'admin', 'unifi', 'traffic' ] }, resolveDefault: (promise, fallback) => promise.catch(() => fallback), url: (...parts) => '/' + parts.join('/'), resource: name => '/luci-static/resources/' + name };
 	const poll = { add() {} };
 	const document = { createElementNS: (_ns, tag) => new Node(tag) };
 	const viewSource = fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/view/unifi/overview.js'), 'utf8');
@@ -74,6 +74,8 @@ test('LuCI view renders the dashboard with RPC data', async () => {
 	assert.equal(view.refs.deviceCount.textContent, '1');
 	assert.equal(view.refs.memoryValue.textContent, '60%');
 	assert.equal(view.refs.totalDownload.textContent, '1.0 MB');
+	assert.equal(view.refs.trafficPage.style.display, '');
+	assert.equal(view.refs.overview.style.display, 'none');
 });
 
 test('settings view shows OpenWrt values without rendering WiFi credentials', async () => {
@@ -81,8 +83,9 @@ test('settings view shows OpenWrt values without rendering WiFi credentials', as
 		constructor(tag) { this.tag = tag; this.children = []; this.classList = { toggle() {} }; }
 		replaceChildren(...children) { this.children = children; }
 	}
-	function E(tag, _attrs, children) {
+	function E(tag, attrs, children) {
 		const node = new Node(tag);
+		node.attrs = attrs || {};
 		if (children != null) node.children = Array.isArray(children) ? children : [ children ];
 		return node;
 	}
@@ -105,10 +108,14 @@ test('settings view shows OpenWrt values without rendering WiFi credentials', as
 	};
 	const uci = { load: () => Promise.resolve(), sections: (config, type) => sections[config][type] || [] };
 	const rpc = { declare: () => () => Promise.resolve([ { interface: 'wan', up: true, l3_device: 'eth0', 'ipv4-address': [ { address: '203.0.113.4' } ], route: [ { target: '0.0.0.0', mask: 0 } ] } ]) };
-	const L = { resolveDefault: (promise, fallback) => promise.catch(() => fallback), url: (...parts) => '/' + parts.join('/'), resource: name => '/luci-static/resources/' + name };
+	const L = { env: { dispatchpath: [ 'admin', 'unifi', 'settings', 'internet' ] }, resolveDefault: (promise, fallback) => promise.catch(() => fallback), url: (...parts) => '/' + parts.join('/'), resource: name => '/luci-static/resources/' + name };
 	const source = fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/view/unifi/settings.js'), 'utf8');
 	const view = new Function('view', 'uci', 'rpc', 'model', 'E', 'L', source)({ extend: value => value }, uci, rpc, model, E, L);
 	view.render(await view.load());
+	assert.equal(view.category, 'internet');
+	assert.equal(view.refs.page.children[0].children[0].children[1].children[0], 'Internet');
+	view.showCategory('overview');
+	assert.equal(view.refs.page.children[0].children.includes(null), false);
 	view.showCategory('wifi');
 	assert.match(content(view.refs.page), /Home WiFi/);
 	assert.doesNotMatch(content(view.refs.page), /secret-do-not-show/);

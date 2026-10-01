@@ -1,0 +1,103 @@
+@import url("/luci-static/openwrt2020/cascade.css");
+
+:root {
+	--main-bright-color: #367ef5;
+	--main-dark-color: #f5f7fb;
+	--secondary-bright-color: #ffffff;
+	--secondary-dark-color: #26364f;
+	--danger-color: #d95362;
+	--warning-color: #d59c53;
+	--success-color: #32b587;
+	--regular-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--base-font-size: 14px;
+}
+
+html { max-width: none; background: #f5f7fb; }
+body { display: flex; width: 100%; min-height: 100vh; background: #f5f7fb; color: #26364f; }
+a { color: #367ef5; }
+a:hover { color: #216cdb; }
+
+#menubar {
+	min-height: 58px;
+	padding: 0 25px;
+	border-bottom: 1px solid #e8edf3;
+	background: #fff;
+	background-image: none;
+	box-shadow: none;
+	color: #26364f;
+}
+#menubar .hostname { flex: 0 1 auto; margin-right: 20px; color: #2976eb; font-size: 17px; font-weight: 760; }
+#menubar .distversion { color: #9aa8ba; font-size: 12px; }
+#indicators { font-size: 12px; }
+#indicators > * { border: 1px solid #e5ebf3; border-radius: 7px; background: #f8fbff; color: #61758f; }
+#indicators > [data-style="inactive"] { border-color: #e5ebf3; background: #fff; color: #9aa8ba; }
+
+#modemenu { padding: 6px 25px; border-bottom: 1px solid #e8edf3; background: #fff; box-shadow: none; color: #7a8a9d; font-size: 12px; }
+#modemenu > .active { border-color: #367ef5; color: #2b75e3; }
+#maincontainer { display: flex; min-width: 0; background: #f5f7fb; }
+#mainmenu {
+	flex: 0 0 224px;
+	width: 224px;
+	max-width: 224px;
+	padding: 21px 10px;
+	border-right: 1px solid #e8edf3;
+	background: #fff;
+	color: #66768b;
+}
+#mainmenu:empty { padding: 0; max-width: 0; flex-basis: 0; }
+#mainmenu > div { top: 20px; }
+#mainmenu ul { margin: 0; }
+#mainmenu .mainmenu.l1 > li { margin: 3px 0; }
+#mainmenu .mainmenu.l1 > li > a {
+	display: block;
+	min-height: 39px;
+	padding: 10px 12px;
+	border-radius: 7px;
+	color: #65758b;
+	font-size: 12px;
+	font-weight: 650;
+}
+#mainmenu .mainmenu.l1 > li > a:hover,
+#mainmenu .mainmenu.l1 > li.selected > a,
+#mainmenu .mainmenu.l1 > li.active > a { background: #eaf2ff; color: #2676ea; }
+#mainmenu .mainmenu.l2 { margin: 2px 0 7px 12px; }
+#mainmenu .mainmenu.l2 > li > a { display: block; padding: 7px 12px; border-radius: 6px; color: #8090a4; font-size: 11px; }
+#mainmenu .mainmenu.l2 > li > a:hover,
+#mainmenu .mainmenu.l2 > li.selected > a { background: #f1f6ff; color: #2876e8; }
+
+#maincontent { min-width: 0; max-width: none; padding: 27px 33px 35px; }
+#maincontent > h1:first-child, #maincontent > h2:first-child { margin-bottom: 20px; color: #26364f; font-weight: 750; }
+#tabmenu { margin-bottom: 16px; }
+.cbi-section, .cbi-map, .ifacebox, .table, .cbi-section-table { border-color: #e6ebf2; }
+.cbi-section { margin-bottom: 17px; border-radius: 9px; background: #fff; }
+.cbi-section > legend:first-child { color: #26364f; font-weight: 730; }
+.cbi-tabmenu { border-bottom-color: #e6ebf2; }
+.cbi-tabmenu > .cbi-tab > a { color: #2878eb; }
+.btn, .cbi-button { border-radius: 6px; }
+.cbi-button-apply, .cbi-button-positive { background: #367ef5; color: #fff; }
+input[type="text"], input[type="password"], input[type="number"], select, textarea { border-radius: 6px; }
+body > .luci { padding: 10px 25px; border-top: 1px solid #e8edf3; background: #fff; color: #9eabba; font-size: 10px; }
+
+/* The UniFi views provide their own compact rail and category navigation. */
+body[data-page^="admin-unifi"] #menubar,
+body[data-page^="admin-unifi"] #modemenu,
+body[data-page^="admin-unifi"] #mainmenu,
+body[data-page^="admin-unifi"] #tabmenu,
+body[data-page^="admin-unifi"] > .luci { display: none !important; }
+body[data-page^="admin-unifi"] #maincontainer { flex: 1 0 auto; }
+body[data-page^="admin-unifi"] #maincontent { width: 100%; padding: 0; }
+body[data-page^="admin-unifi"] .uf-app { margin: 0; min-height: 100vh; border: 0; border-radius: 0; }
+body[data-page^="admin-unifi"] .uf-shell,
+body[data-page^="admin-unifi"] .uf-settings-shell { min-height: 100vh; }
+
+@media only screen and (max-width: 800px) {
+	body { padding-top: 58px; }
+	#menubar { position: fixed; top: 0; min-height: 58px; padding: 0 14px; }
+	#menubar > h2 { border-color: #dce7f8; color: #367ef5; }
+	#menubar .hostname { font-size: 16px; }
+	#mainmenu { flex-basis: 0; width: auto; max-width: 0; padding: 0; height: calc(100vh - 58px); }
+	#mainmenu.active { max-width: 224px; padding: 16px 10px; border-right: 1px solid #e8edf3; }
+	#maincontent { max-width: 100vw; padding: 17px 14px; }
+	body[data-page^="admin-unifi"] { padding-top: 0; }
+	body[data-page^="admin-unifi"] #maincontent { max-width: none; }
+}

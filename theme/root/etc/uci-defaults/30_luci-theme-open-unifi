@@ -1,0 +1,6 @@
+#!/bin/sh
+
+uci -q set luci.themes.OpenUniFi='/luci-static/open-unifi'
+uci commit luci
+
+exit 0

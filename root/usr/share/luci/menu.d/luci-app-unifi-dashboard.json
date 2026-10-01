@@ -16,9 +16,54 @@
 		"order": 10,
 		"action": { "type": "view", "path": "unifi/overview" }
 	},
+	"admin/unifi/traffic": {
+		"title": "Traffic",
+		"order": 15,
+		"action": { "type": "view", "path": "unifi/overview" }
+	},
+	"admin/unifi/clients": {
+		"title": "Clients",
+		"order": 18,
+		"action": { "type": "view", "path": "unifi/overview" }
+	},
 	"admin/unifi/settings": {
 		"title": "Settings",
 		"order": 20,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/overview": {
+		"title": "Overview",
+		"order": 10,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/wifi": {
+		"title": "WiFi",
+		"order": 20,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/networks": {
+		"title": "Networks",
+		"order": 30,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/internet": {
+		"title": "Internet",
+		"order": 40,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/vpn": {
+		"title": "VPN",
+		"order": 50,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/security": {
+		"title": "Security",
+		"order": 60,
+		"action": { "type": "view", "path": "unifi/settings" }
+	},
+	"admin/unifi/settings/routing": {
+		"title": "Routing",
+		"order": 70,
 		"action": { "type": "view", "path": "unifi/settings" }
 	}
 }

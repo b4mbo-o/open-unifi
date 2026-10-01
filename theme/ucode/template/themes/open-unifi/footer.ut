@@ -1,0 +1,12 @@
+{#
+ Based on the LuCI OpenWrt 2020 theme template.
+ Copyright 2020 Jo-Philipp Wich <jo@mein.io>
+ Licensed to the public under the Apache License 2.0.
+-#}
+
+	</div>
+</div>
+<p class="luci">OpenUniFi · {{ version.distname }} {{ version.distversion }} · LuCI {{ version.luciversion }}</p>
+<script>L.require('menu-openwrt2020')</script>
+</body>
+</html>

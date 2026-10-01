@@ -25,7 +25,7 @@ function dot(label, active) {
 }
 
 function icon(name) {
-	var glyphs = { overview: '◫', clients: '▤', network: '⌁', wifi: '◉', firewall: '◇' };
+	var glyphs = { overview: '◫', traffic: '↗', clients: '▤', network: '⌁', wifi: '◉', firewall: '◇' };
 	return E('span', { 'class': 'uf-nav__icon', 'aria-hidden': 'true' }, glyphs[name] || '•');
 }
 
@@ -89,11 +89,15 @@ return view.extend({
 		this.search = '';
 		this.refs = {};
 
-		var self = this;
 		var refs = this.refs;
-		var navOverview = E('button', { 'class': 'uf-nav__item is-active', 'type': 'button', 'onclick': function() { self.showTab('overview'); } }, [ icon('overview'), E('span', {}, '概要') ]);
-		var navClients = E('button', { 'class': 'uf-nav__item', 'type': 'button', 'onclick': function() { self.showTab('clients'); } }, [ icon('clients'), E('span', {}, '端末') ]);
+		var path = L.env && L.env.dispatchpath || [];
+		var initialTab = path.indexOf('traffic') !== -1 ? 'traffic' : path.indexOf('clients') !== -1 ? 'clients' : 'overview';
+		var pageLabel = initialTab === 'traffic' ? 'Traffic' : initialTab === 'clients' ? 'Clients' : 'Dashboard';
+		var navOverview = E('a', { 'class': 'uf-nav__item is-active', 'href': L.url('admin/unifi/overview') }, [ icon('overview'), E('span', {}, '概要') ]);
+		var navTraffic = E('a', { 'class': 'uf-nav__item', 'href': L.url('admin/unifi/traffic') }, [ icon('traffic'), E('span', {}, 'トラフィック') ]);
+		var navClients = E('a', { 'class': 'uf-nav__item', 'href': L.url('admin/unifi/clients') }, [ icon('clients'), E('span', {}, '端末') ]);
 		refs.navOverview = navOverview;
+		refs.navTraffic = navTraffic;
 		refs.navClients = navClients;
 
 		var root = E('div', { 'class': 'uf-app' }, [
@@ -107,7 +111,7 @@ return view.extend({
 				E('aside', { 'class': 'uf-sidebar' }, [
 					E('div', { 'class': 'uf-brand' }, E('span', { 'class': 'uf-brand__name' }, [ 'Network', E('small', {}, this.board.hostname || 'OpenWrt') ])),
 					E('div', { 'class': 'uf-nav__label' }, 'WORKSPACE'),
-					E('nav', { 'class': 'uf-nav', 'aria-label': 'ダッシュボード' }, [ navOverview, navClients ]),
+					E('nav', { 'class': 'uf-nav', 'aria-label': 'ダッシュボード' }, [ navOverview, navTraffic, navClients ]),
 					E('div', { 'class': 'uf-nav__label uf-nav__label--second' }, 'OPENWRT SETTINGS'),
 					E('nav', { 'class': 'uf-nav', 'aria-label': 'OpenWrt設定' }, [
 						link(L.url('admin/unifi/settings'), 'network', 'UniFi風の設定'),
@@ -119,10 +123,11 @@ return view.extend({
 				]),
 				E('main', { 'class': 'uf-main' }, [
 					E('header', { 'class': 'uf-topbar' }, [
-						E('div', { 'class': 'uf-breadcrumb' }, [ 'Network', E('span', {}, '/'), 'Dashboard' ]),
+						E('div', { 'class': 'uf-breadcrumb' }, [ 'Network', E('span', {}, '/'), pageLabel ]),
 						E('div', { 'class': 'uf-topbar__right' }, [ E('span', { 'class': 'uf-live-dot' }), 'LIVE', E('span', { 'class': 'uf-topbar__divider' }), E('span', {}, this.board.hostname || 'OpenWrt') ])
 					]),
 					(refs.overview = E('section', { 'class': 'uf-page' }, this.renderOverview())),
+					(refs.trafficPage = E('section', { 'class': 'uf-page', 'style': 'display:none' }, this.renderTrafficPage())),
 					(refs.clientsPage = E('section', { 'class': 'uf-page', 'style': 'display:none' }, this.renderClientsPage()))
 				])
 			])
@@ -130,6 +135,7 @@ return view.extend({
 		this.refreshDisplay();
 		this.renderRecentClients();
 		this.renderClientRows();
+		this.showTab(initialTab);
 		poll.add(this.refreshTraffic.bind(this), 2);
 		poll.add(this.refreshLeases.bind(this), 15);
 		this.refreshTraffic();
@@ -180,7 +186,35 @@ return view.extend({
 				E('div', { 'class': 'uf-card' }, [ E('div', { 'class': 'uf-card__head' }, [ E('div', {}, [ E('div', { 'class': 'uf-card__eyebrow' }, 'INTERFACES'), E('h2', {}, 'ネットワーク') ]) ]), refs.interfaces ]),
 				E('div', { 'class': 'uf-card' }, [ E('div', { 'class': 'uf-card__head' }, [ E('div', {}, [ E('div', { 'class': 'uf-card__eyebrow' }, 'SYSTEM'), E('h2', {}, 'ゲートウェイの状態') ]) ]), E('div', { 'class': 'uf-system' }, [ E('div', { 'class': 'uf-system__memory' }, [ E('div', {}, [ E('span', {}, 'メモリ使用率'), refs.memoryValue ]), E('div', { 'class': 'uf-progress' }, refs.memoryBar) ]), infoRow('モデル', this.board.model || '—'), E('div', { 'class': 'uf-detail-row' }, [ E('span', {}, '1分負荷'), refs.load ]), E('div', { 'class': 'uf-detail-row' }, [ E('span', {}, '起動後の受信量'), refs.totalDownload ]), E('div', { 'class': 'uf-detail-row' }, [ E('span', {}, '起動後の送信量'), refs.totalUpload ]) ]) ])
 			]),
-			E('div', { 'class': 'uf-card uf-recent' }, [ E('div', { 'class': 'uf-card__head' }, [ E('div', {}, [ E('div', { 'class': 'uf-card__eyebrow' }, 'DEVICES'), E('h2', {}, '最近のDHCPリース') ]), E('button', { 'class': 'uf-text-button', 'type': 'button', 'onclick': this.showTab.bind(this, 'clients') }, 'すべて見る →') ]), refs.recentClients ])
+			E('div', { 'class': 'uf-card uf-recent' }, [ E('div', { 'class': 'uf-card__head' }, [ E('div', {}, [ E('div', { 'class': 'uf-card__eyebrow' }, 'DEVICES'), E('h2', {}, '最近のDHCPリース') ]), E('a', { 'class': 'uf-text-button', 'href': L.url('admin/unifi/clients') }, 'すべて見る →') ]), refs.recentClients ])
+		];
+	},
+
+	renderTrafficPage: function() {
+		var refs = this.refs;
+		refs.trafficDownload = E('strong', { 'class': 'uf-stat__value' });
+		refs.trafficUpload = E('strong', { 'class': 'uf-stat__value' });
+		refs.trafficTotalRx = E('strong', { 'class': 'uf-stat__value' });
+		refs.trafficTotalTx = E('strong', { 'class': 'uf-stat__value' });
+		refs.trafficChartDownload = E('strong', { 'class': 'uf-chart__rate' });
+		refs.trafficChartUpload = E('strong', { 'class': 'uf-chart__rate' });
+		refs.trafficChart = E('div', { 'class': 'uf-chart__canvas' });
+		refs.trafficDevice = E('strong');
+		return [
+			E('div', { 'class': 'uf-heading' }, E('div', {}, [ E('div', { 'class': 'uf-eyebrow' }, 'INSIGHTS'), E('h1', {}, 'トラフィック'), E('p', {}, 'WANデバイスの通信速度をリアルタイムで表示します。') ])),
+			E('div', { 'class': 'uf-stats uf-stats--traffic' }, [
+				this.statCard('↓', 'ダウンロード', refs.trafficDownload, '現在の受信速度', 'uf-stat--blue'),
+				this.statCard('↑', 'アップロード', refs.trafficUpload, '現在の送信速度', 'uf-stat--violet'),
+				this.statCard('↓', '起動後の受信量', refs.trafficTotalRx, 'WANの累積カウンター', 'uf-stat--mint'),
+				this.statCard('↑', '起動後の送信量', refs.trafficTotalTx, 'WANの累積カウンター', 'uf-stat--amber')
+			]),
+			E('div', { 'class': 'uf-card uf-chart' }, [
+				E('div', { 'class': 'uf-card__head' }, [ E('div', {}, [ E('div', { 'class': 'uf-card__eyebrow' }, 'LIVE BANDWIDTH'), E('h2', {}, 'WAN の通信速度') ]), E('span', { 'class': 'uf-live-badge' }, [ E('span'), ' リアルタイム' ]) ]),
+				E('div', { 'class': 'uf-chart__rates' }, [ E('div', {}, [ E('span', { 'class': 'uf-legend-dot uf-legend-dot--blue' }), 'ダウンロード', refs.trafficChartDownload ]), E('div', {}, [ E('span', { 'class': 'uf-legend-dot uf-legend-dot--violet' }), 'アップロード', refs.trafficChartUpload ]) ]),
+				refs.trafficChart,
+				E('div', { 'class': 'uf-chart__foot' }, [ E('span', {}, '直近約1分 · 2秒間隔'), E('span', {}, 'ページを閉じると履歴は消えます') ])
+			]),
+			E('div', { 'class': 'uf-card uf-traffic-info' }, [ E('div', { 'class': 'uf-card__head' }, [ E('div', {}, [ E('div', { 'class': 'uf-card__eyebrow' }, 'SOURCE'), E('h2', {}, '計測対象') ]) ]), E('div', { 'class': 'uf-system' }, [ E('div', { 'class': 'uf-detail-row' }, [ E('span', {}, 'WANデバイス'), refs.trafficDevice ]), infoRow('計算方法', '受信・送信バイト数の差分') ]) ])
 		];
 	},
 
@@ -203,9 +237,12 @@ return view.extend({
 
 	showTab: function(tab) {
 		var clients = tab === 'clients';
-		this.refs.overview.style.display = clients ? 'none' : '';
+		var traffic = tab === 'traffic';
+		this.refs.overview.style.display = clients || traffic ? 'none' : '';
+		this.refs.trafficPage.style.display = traffic ? '' : 'none';
 		this.refs.clientsPage.style.display = clients ? '' : 'none';
-		this.refs.navOverview.classList.toggle('is-active', !clients);
+		this.refs.navOverview.classList.toggle('is-active', !clients && !traffic);
+		this.refs.navTraffic.classList.toggle('is-active', traffic);
 		this.refs.navClients.classList.toggle('is-active', clients);
 	},
 
@@ -290,13 +327,24 @@ return view.extend({
 		text(refs.load, Array.isArray(this.info.load) ? (this.info.load[0] / 65535).toFixed(2) : '—');
 		text(refs.totalDownload, this.totalRx == null ? '—' : model.formatBytes(this.totalRx));
 		text(refs.totalUpload, this.totalTx == null ? '—' : model.formatBytes(this.totalTx));
+		text(refs.trafficDownload, this.totalRx == null ? '—' : model.formatRate(this.rxRate));
+		text(refs.trafficUpload, this.totalTx == null ? '—' : model.formatRate(this.txRate));
+		text(refs.trafficChartDownload, this.totalRx == null ? '—' : model.formatRate(this.rxRate));
+		text(refs.trafficChartUpload, this.totalTx == null ? '—' : model.formatRate(this.txRate));
+		text(refs.trafficTotalRx, this.totalRx == null ? '—' : model.formatBytes(this.totalRx));
+		text(refs.trafficTotalTx, this.totalTx == null ? '—' : model.formatBytes(this.totalTx));
+		text(refs.trafficDevice, model.deviceName(this.wan));
 		text(refs.updated, new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
 		this.renderChart();
 		this.renderInterfaceRows();
 	},
 
 	renderChart: function() {
-		var canvas = this.refs.chart;
+		var self = this;
+		[ this.refs.chart, this.refs.trafficChart ].forEach(function(canvas) { self.renderChartInto(canvas); });
+	},
+
+	renderChartInto: function(canvas) {
 		var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 		svg.setAttribute('viewBox', '0 0 760 188');
 		svg.setAttribute('preserveAspectRatio', 'none');
