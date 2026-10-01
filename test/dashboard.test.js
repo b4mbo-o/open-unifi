@@ -4,7 +4,23 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const model = new Function(fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/unifi/model.js'), 'utf8'))();
+class LuCIClass {
+	static extend(methods) {
+		class Module extends this {}
+		Object.assign(Module.prototype, methods);
+		return Module;
+	}
+	static isSubclass(module) {
+		return typeof module === 'function' && module.prototype instanceof this;
+	}
+}
+const modelClass = new Function('L', fs.readFileSync(path.join(root, 'htdocs/luci-static/resources/unifi/model.js'), 'utf8'))({ Class: LuCIClass });
+const model = new modelClass();
+
+test('model exports a LuCI class for the module loader', () => {
+	assert.ok(LuCIClass.isSubclass(modelClass));
+	assert.equal(typeof model.selectWan, 'function');
+});
 
 test('WAN selection follows the active default route', () => {
 	const interfaces = [

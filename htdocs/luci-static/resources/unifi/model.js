@@ -94,7 +94,7 @@ function leases(reply) {
 	}).sort(function(a, b) { return a.name.localeCompare(b.name); });
 }
 
-return {
+return L.Class.extend({
 	selectWan: selectWan,
 	deviceName: deviceName,
 	firstAddress: firstAddress,
@@ -104,4 +104,4 @@ return {
 	formatUptime: formatUptime,
 	memoryPercent: memoryPercent,
 	leases: leases
-};
+});
